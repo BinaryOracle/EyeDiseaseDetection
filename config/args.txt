@@ -1,0 +1,8 @@
+--models_path
+pretrain/RETFound_mae_natureCFP.pth
+--data_path
+data/
+--model
+RETFound_mae
+--save_path
+output/

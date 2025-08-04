@@ -1,0 +1,49 @@
+{
+  "patients": {
+    "P2025001": {
+      "patient_id": "P2025001",
+      "name": "扎西",
+      "age": 45,
+      "gender": "男",
+      "phone": "13800138000",
+      "screening_records": [
+        {
+          "screening_time": "2025-07-31 16:09:07",
+          "eye_image_path": "/Users/zhandaohong/PycharmProjects/EyeDiseaseDetection/data/AMD-CFP/CAI_CHENGHUI_19460619_20201209_1910_IMAGEnetR4_Image_OD_1.2.392.200106.1651.4.2.200217210022131239.1607483470.153.tiff",
+          "vision_data": {
+            "left_eye": 0.8,
+            "right_eye": 0.6,
+            "intraocular_pressure": {
+              "left": 18,
+              "right": 19
+            }
+          },
+          "notes": "",
+          "ai_diagnosis": {
+            "conclusion": "AMD-CFP",
+            "confidence": 0.6787625551223755,
+            "abnormal_areas": [
+              "视网膜周边"
+            ]
+          },
+          "doctor_review": {
+            "final_conclusion": "高度近视",
+            "doctor_name": "唐医生",
+            "recommendation": "3个月后复查，避免剧烈运动"
+          },
+          "report_generated": true
+        }
+      ]
+    }
+  },
+  "ai_diagnosis_results": {
+    "P2025001_0": {
+      "conclusion": "AMD-CFP",
+      "confidence": 0.6787625551223755,
+      "abnormal_areas": [
+        "视网膜周边"
+      ]
+    }
+  },
+  "save_time": "2025-07-31 16:09:07"
+}
