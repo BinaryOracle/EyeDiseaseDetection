@@ -53,22 +53,20 @@ python finetune.py --data_path ./data --model RETFound_mae --nb_classes 6 --save
 1. 从消息队列异步拉取患者信息,视力检测信息等，包括:
 
 ```json
-{
-  patient_id: "患者唯一ID",
-  name: "姓名",
-  age: "年龄",
-  gender: "性别",
-  phone: "电话",
-  photos: "患者眼底图片列表",
-  screening_records: "患者历次检查记录"
+"Patient": {
+  "patient_id": "患者唯一ID",
+  "name": "姓名",
+  "age": "年龄",
+  "gender": "性别",
+  "phone": "电话",
+  "photos": "患者眼底图片列表",
+  "screening_records": "患者历次检查记录"
 }
-```
 
-```json
-{
-  left_eye: 0.8,
-  right_eye: 0.6,
-  intraocular_pressure: {"left": 18, "right": 19}
+"vision_data": {
+  "left_eye": 0.8,
+  "right_eye": 0.6,
+  "intraocular_pressure": {"left": 18, "right": 19}
 }
 ```
 
