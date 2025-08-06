@@ -158,8 +158,11 @@ def load_finetuned_model(args, device):
     checkpoint_path = os.path.join(args.save_path, 'best_model.pth')
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"找不到微调权重文件: {checkpoint_path}")
-    state_dict = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    model.load_state_dict(state_dict)
+
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+
+    # 尝试加载权重，记录不匹配项
+    model.load_state_dict(checkpoint, strict=False)
 
     model.to(device)
 
@@ -242,6 +245,6 @@ if __name__ == '__main__':
         args.data_path = convert_path_to_unix_style(args.data_path)
         args.save_path = convert_path_to_unix_style(args.save_path)
 
-    model = load_model(args, device)
+    model = load_finetuned_model(args, device)
     train_loader, val_loader = load_data(args)
     train(model, train_loader, val_loader, args, device)

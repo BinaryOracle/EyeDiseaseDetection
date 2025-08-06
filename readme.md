@@ -40,7 +40,14 @@ python finetune.py --data_path ./data --model RETFound_mae --nb_classes 6 --save
 
 预训练模型权重加载: 移除分类数量不匹配的分类头，替换为新的分类头，并对分类头的权重进行截断正态分布初始化，并将偏置项初始化为零。
 
-微调方法: 仅对分类头进行微调（liner probe）。
+微调方法:  Adapter Tuning（适配器微调）。
+
+```json
+Input ──> LN ──> Attention ──> Add ──> LN ──> MLP ──> Add ──> Output
+                  │                          │
+                  ▼                          ▼
+             Adapter-1                  Adapter-2
+```
 
 ## 结果
 
