@@ -1,5 +1,4 @@
 import argparse
-import glob
 import os
 import warnings
 import time
@@ -12,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-import models_vit as models
+import custom_models_vit as models
 from timm.models.layers import trunc_normal_
 from config import device
 
@@ -164,9 +163,12 @@ def load_finetuned_model(args, device):
 
     model.to(device)
 
-    # 冻结除分类头外的所有参数
+    # 冻结除分类头和 Adapter 外的所有参数
     for name, param in model.named_parameters():
-        param.requires_grad = name.startswith("head")
+        if name.startswith("head") or "adapter" in name:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
 
     return model
 
