@@ -42,7 +42,7 @@ python finetune.py --data_path ./data --model RETFound_mae --nb_classes 6 --save
 
 微调方法:  Adapter Tuning（适配器微调）。
 
-```json
+```python
 Input ──> LN ──> Attention ──> Add ──> LN ──> MLP ──> Add ──> Output
                   │                          │
                   ▼                          ▼
