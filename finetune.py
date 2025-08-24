@@ -132,7 +132,7 @@ def load_model(args, device):
         if model.head.bias is not None:
             nn.init.constant_(model.head.bias, 0)
 
-    model.to(device)
+    model.to(device, dtype=torch.float32)
 
     # 冻结除分类头外的所有参数
     for name, param in model.named_parameters():
@@ -165,7 +165,7 @@ def load_finetuned_model(args, device):
     # 尝试加载权重，记录不匹配项
     model.load_state_dict(checkpoint, strict=False)
 
-    model.to(device)
+    model.to(device, dtype=torch.float32)
 
     # 冻结除分类头和 Adapter 外的所有参数
     for name, param in model.named_parameters():
@@ -196,14 +196,17 @@ def load_model_finetuned(args, device):
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"找不到微调权重文件: {checkpoint_path}")
 
+    # 加载 checkpoint，不加载 head
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    state_dict = checkpoint.copy()
+    for k in list(state_dict.keys()):
+        if k.startswith('head.'):
+            del state_dict[k]
 
-    # 尝试加载权重，记录不匹配项
-    model.load_state_dict(checkpoint, strict=False)
+    model.load_state_dict(state_dict, strict=False)
+    model.to(device, dtype=torch.float32)
 
-    model.to(device)
-
-    # 初始化分类头权重
+    # 重新初始化分类头
     if hasattr(model, 'head') and isinstance(model.head, nn.Linear):
         trunc_normal_(model.head.weight, std=2e-5)
         if model.head.bias is not None:
@@ -229,7 +232,7 @@ def train(model, train_loader, val_loader, args, device):
         train_loss = 0
 
         for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device, dtype=torch.float32), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -242,7 +245,7 @@ def train(model, train_loader, val_loader, args, device):
         val_loss, correct, total = 0, 0, 0
         with torch.no_grad():
             for images, labels in val_loader:
-                images, labels = images.to(device), labels.to(device)
+                images, labels = images.to(device, dtype=torch.float32), labels.to(device)
                 outputs = model(images)
                 val_loss += criterion(outputs, labels).item()
                 _, predicted = outputs.max(1)
