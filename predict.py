@@ -3,7 +3,8 @@ from torchvision import transforms
 import config
 from PIL import Image
 
-class_tabel = ('A-CFP', 'CSC', 'D', 'N', 'RP', 'RVO')
+class_tabel = ('A', 'C', 'CSC', 'D', 'G', 'N', 'RP' , 'RVO')
+class_tabel_with_level = ('A', 'C', 'CSC', 'D0','D1','D2','D3','D4', 'G', 'N', 'RP' , 'RVO')
 
 transform = transforms.Compose([
     transforms.Resize(224),
