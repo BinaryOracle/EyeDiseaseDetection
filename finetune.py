@@ -279,7 +279,7 @@ if __name__ == '__main__':
     parser.add_argument('--global_pool', default='token')
     parser.add_argument('--drop_path', type=float, default=0.2)
     parser.add_argument('--val_ratio', type=float, default=0.2)
-    parser.add_argument('--batch_size', type=int, default=16)
+    parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=0.002)
     parser.add_argument('--save_path', type=str, required=True)
