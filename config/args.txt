@@ -39,7 +39,7 @@ rand-m9-mstd0.5-inc1
 --log_dir
 ./output_logs
 --nb_classes
-4
+8
 --device
 cuda
 --num_workers

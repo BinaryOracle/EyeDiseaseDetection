@@ -176,6 +176,48 @@ def load_finetuned_model(args, device):
 
     return model
 
+def load_model_finetuned(args, device):
+    if args.model == 'RETFound_mae':
+        model = models.__dict__[args.model](
+            img_size=args.input_size,
+            num_classes=args.nb_classes,
+            drop_path_rate=args.drop_path,
+            global_pool=args.global_pool,
+        )
+    else:
+        model = models.__dict__[args.model](
+            num_classes=args.nb_classes,
+            drop_path_rate=args.drop_path,
+            args=args,
+        )
+
+    # 加载保存的微调权重
+    checkpoint_path = args.models_path
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(f"找不到微调权重文件: {checkpoint_path}")
+
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+
+    # 尝试加载权重，记录不匹配项
+    model.load_state_dict(checkpoint, strict=False)
+
+    model.to(device)
+
+    # 初始化分类头权重
+    if hasattr(model, 'head') and isinstance(model.head, nn.Linear):
+        trunc_normal_(model.head.weight, std=2e-5)
+        if model.head.bias is not None:
+            nn.init.constant_(model.head.bias, 0)
+
+    # 冻结除分类头和 Adapter 外的所有参数
+    for name, param in model.named_parameters():
+        if name.startswith("head") or "adapter" in name:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
+    return model
+
 def train(model, train_loader, val_loader, args, device):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=0.05)
@@ -216,7 +258,7 @@ def train(model, train_loader, val_loader, args, device):
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             os.makedirs(args.save_path, exist_ok=True)
-            torch.save(model.state_dict(), os.path.join(args.save_path, 'best_model.pth'))
+            torch.save(model.state_dict(), os.path.join(args.save_path, 'checkpoint-best.pth'))
             print(f'✅ Saved best model with accuracy: {best_val_acc:.2f}%')
 
 def convert_path_to_unix_style(path):
@@ -230,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', type=str, required=True)
     parser.add_argument('--model', type=str, required=True)
     parser.add_argument('--input_size', default=255, type=int)
-    parser.add_argument('--nb_classes', default=6, type=int)
+    parser.add_argument('--nb_classes', default=8, type=int)
     parser.add_argument('--global_pool', default='token')
     parser.add_argument('--drop_path', type=float, default=0.2)
     parser.add_argument('--val_ratio', type=float, default=0.2)
@@ -246,6 +288,6 @@ if __name__ == '__main__':
         args.data_path = convert_path_to_unix_style(args.data_path)
         args.save_path = convert_path_to_unix_style(args.save_path)
 
-    model = load_finetuned_model(args, device)
+    model = load_model_finetuned(args, device)
     train_loader, val_loader = load_data(args)
     train(model, train_loader, val_loader, args, device)
