@@ -111,7 +111,7 @@ Input ──> LN ──> Attention ──> Add ──> LN ──> MLP ──> Ad
       "screening_records": [
         {
           "screening_time": "2025-07-31 16:09:07",
-          "eye_image_path": "/Users/zhandaohong/PycharmProjects/EyeDiseaseDetection/data/AMD-CFP/CAI_CHENGHUI_19460619_20201209_1910_IMAGEnetR4_Image_OD_1.2.392.200106.1651.4.2.200217210022131239.1607483470.153.tiff",
+          "eye_image_path": "/Users/zhandaohong/PycharmProjects/EyeDiseaseDetection/data/A-CFP/CAI_CHENGHUI_19460619_20201209_1910_IMAGEnetR4_Image_OD_1.2.392.200106.1651.4.2.200217210022131239.1607483470.153.tiff",
           "vision_data": {
             "left_eye": 0.8,
             "right_eye": 0.6,
@@ -122,7 +122,7 @@ Input ──> LN ──> Attention ──> Add ──> LN ──> MLP ──> Ad
           },
           "notes": "",
           "ai_diagnosis": {
-            "conclusion": "AMD-CFP",
+            "conclusion": "A-CFP",
             "confidence": 0.6787625551223755,
             "abnormal_areas": [
               "视网膜周边"
@@ -140,7 +140,7 @@ Input ──> LN ──> Attention ──> Add ──> LN ──> MLP ──> Ad
   },
   "ai_diagnosis_results": {
     "P2025001_0": {
-      "conclusion": "AMD-CFP",
+      "conclusion": "A-CFP",
       "confidence": 0.6787625551223755,
       "abnormal_areas": [
         "视网膜周边"

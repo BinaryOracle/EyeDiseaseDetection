@@ -1,0 +1,50 @@
+{
+  "dataset_path": "data",
+  "categories": [
+    {
+      "code": "N",
+      "name": "Normal",
+      "description": "正常眼底"
+    },
+    {
+      "code": "D", 
+      "name": "Diabetes",
+      "description": "糖尿病性视网膜病变"
+    },
+    {
+      "code": "D-level",
+      "name": "Diabetes level",
+      "description": "糖尿病性视网膜病变(分级)"
+    },
+    {
+      "code": "G",
+      "name": "Glaucoma", 
+      "description": "青光眼"
+    },
+    {
+      "code": "C",
+      "name": "Cataract",
+      "description": "白内障"
+    },
+    {
+      "code": "A",
+      "name": "AMD",
+      "description": "年龄相关性黄斑变性"
+    },
+    {
+      "code": "CSC",
+      "name": "CSC",
+      "description": "中央性浆液性脉络膜视网膜病变"
+    },
+    {
+      "code": "RP",
+      "name": "RP",
+      "description": "视网膜色素变性"
+    },
+    {
+      "code": "RVO",
+      "name": "RVO",
+      "description": "视网膜静脉阻塞"
+    }
+  ]
+}

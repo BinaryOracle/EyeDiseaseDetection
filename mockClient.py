@@ -1,7 +1,7 @@
 import json
 import pika
 
-image_path = "/Users/zhandaohong/PycharmProjects/EyeDiseaseDetection/data/AMD-CFP/CAI_CHENGHUI_19460619_20201209_1910_IMAGEnetR4_Image_OD_1.2.392.200106.1651.4.2.200217210022131239.1607483470.153.tiff"
+image_path = "/data/A/CAI_CHENGHUI_19460619_20201209_1910_IMAGEnetR4_Image_OD_1.2.392.200106.1651.4.2.200217210022131239.1607483470.153.tiff"
 
 # 患者信息和图片路径
 message = {
