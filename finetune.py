@@ -226,12 +226,20 @@ def train(model, train_loader, val_loader, args, device):
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=0.05)
     best_val_acc = 88
 
+    # 计算总迭代次数
+    total_iterations = len(train_loader) * args.epochs
+    print(f"🚀 开始训练，总轮数: {args.epochs}, 每轮迭代数: {len(train_loader)}, 总迭代数: {total_iterations}")
+    print(f"📊 学习率: {args.lr}, 批次大小: {args.batch_size}")
+    print("=" * 80)
+
     for epoch in range(args.epochs):
         start_time = time.time()
         model.train()
         train_loss = 0
+        
+        print(f"🔄 Epoch {epoch+1}/{args.epochs} 开始训练...")
 
-        for images, labels in train_loader:
+        for batch_idx, (images, labels) in enumerate(train_loader):
             images, labels = images.to(device, dtype=torch.float32), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
@@ -239,8 +247,19 @@ def train(model, train_loader, val_loader, args, device):
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
+            
+            # 每10个批次输出一次进度和损失
+            if (batch_idx + 1) % 10 == 0:
+                avg_loss = train_loss / (batch_idx + 1)
+                progress = (epoch * len(train_loader) + batch_idx + 1) / (len(train_loader) * args.epochs) * 100
+                print(f"  📍 Epoch {epoch+1}/{args.epochs} | Batch {batch_idx+1}/{len(train_loader)} | "
+                      f"Progress: {progress:.1f}% | Current Loss: {loss.item():.4f} | Avg Loss: {avg_loss:.4f}")
 
+        # 计算平均训练损失
+        avg_train_loss = train_loss / len(train_loader)
+        
         # 评估阶段
+        print(f"🔍 Epoch {epoch+1}/{args.epochs} 开始验证...")
         model.eval()
         val_loss, correct, total = 0, 0, 0
         with torch.no_grad():
@@ -253,10 +272,24 @@ def train(model, train_loader, val_loader, args, device):
                 correct += predicted.eq(labels).sum().item()
 
         val_acc = 100. * correct / total
+        avg_val_loss = val_loss / len(val_loader)
         elapsed = time.time() - start_time
+        
+        # 计算总体进度
+        overall_progress = (epoch + 1) / args.epochs * 100
 
-        print(f'Epoch {epoch+1}/{args.epochs}, Train Loss: {train_loss / len(train_loader):.4f}, '
-              f'Val Loss: {val_loss / len(val_loader):.4f}, Val Acc: {val_acc:.2f}%, Time: {elapsed:.2f}s')
+        print(f"📈 Epoch {epoch+1}/{args.epochs} 完成 | 总体进度: {overall_progress:.1f}%")
+        print(f"   🎯 训练损失: {avg_train_loss:.4f} | 验证损失: {avg_val_loss:.4f} | 验证准确率: {val_acc:.2f}%")
+        print(f"   ⏱️  耗时: {elapsed:.2f}s | 最佳准确率: {best_val_acc:.2f}%")
+        
+        # 损失变化趋势
+        if epoch > 0:
+            loss_change = avg_train_loss - prev_train_loss
+            loss_trend = "↗️" if loss_change > 0 else "↘️" if loss_change < 0 else "➡️"
+            print(f"   📊 损失变化: {loss_change:+.4f} {loss_trend}")
+        
+        prev_train_loss = avg_train_loss
+        print("-" * 80)
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
