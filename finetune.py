@@ -224,7 +224,7 @@ def load_model_finetuned(args, device):
 def train(model, train_loader, val_loader, args, device):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=0.05)
-    best_val_acc = 88
+    best_val_acc = 85
 
     # 计算总迭代次数
     total_iterations = len(train_loader) * args.epochs
