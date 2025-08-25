@@ -2,14 +2,17 @@ import argparse
 import os
 import warnings
 import time
+import numpy as np
 from pathlib import Path
+from collections import Counter
 
 from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
 from PIL import Image
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from torchvision import transforms
 import models_vit as models
 from timm.models.layers import trunc_normal_
@@ -21,6 +24,8 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 train_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
+    transforms.RandomRotation(10),
+    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
     transforms.Resize(255),
     transforms.CenterCrop(255),
     transforms.ToTensor(),
@@ -78,19 +83,57 @@ def load_data(args):
                         all_img_paths.append(str(img_path))
                         all_labels.append(i)
 
-    # 划分训练集和验证集
+    # 分析类别分布
+    label_counts = Counter(all_labels)
+    print("📊 原始数据类别分布:")
+    for i, class_name in enumerate(class_tabel):
+        print(f"  {class_name}: {label_counts[i]} 张图片")
+    
+    # 计算类别权重
+    class_weights = compute_class_weight(
+        'balanced', 
+        classes=np.unique(all_labels), 
+        y=all_labels
+    )
+    class_weights = torch.FloatTensor(class_weights)
+    print(f"⚖️  计算得到的类别权重: {class_weights.numpy()}")
+
+    # 划分训练集和验证集（分层采样）
     train_img_paths, val_img_paths, train_labels, val_labels = train_test_split(
-        all_img_paths, all_labels, test_size=args.val_ratio, random_state=42)
+        all_img_paths, all_labels, 
+        test_size=args.val_ratio, 
+        random_state=42,
+        stratify=all_labels  # 分层采样保持类别比例
+    )
 
     # 构建数据集
     train_dataset = FundusDataset(train_img_paths, train_labels, transform=train_transform)
     val_dataset = FundusDataset(val_img_paths, val_labels, transform=test_transform)
 
-    # 构建数据加载器
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
+    # 为训练集创建加权采样器
+    train_label_counts = Counter(train_labels)
+    train_sample_weights = [1.0 / train_label_counts[label] for label in train_labels]
+    train_sampler = WeightedRandomSampler(
+        weights=train_sample_weights,
+        num_samples=len(train_labels),
+        replacement=True
+    )
 
-    return train_loader, val_loader
+    # 构建数据加载器
+    train_loader = DataLoader(
+        train_dataset, 
+        batch_size=args.batch_size, 
+        sampler=train_sampler,  # 使用加权采样器
+        num_workers=4
+    )
+    val_loader = DataLoader(
+        val_dataset, 
+        batch_size=args.batch_size, 
+        shuffle=False,
+        num_workers=4
+    )
+
+    return train_loader, val_loader, class_weights
 
 def load_model(args, device):
     if args.model == 'RETFound_mae':
@@ -221,15 +264,46 @@ def load_model_finetuned(args, device):
 
     return model
 
-def train(model, train_loader, val_loader, args, device):
-    criterion = nn.CrossEntropyLoss()
+def calculate_class_metrics(outputs, labels, num_classes):
+    """计算每个类别的准确率"""
+    # 确保outputs和labels都是正确的形状
+    if outputs.dim() == 1:
+        predicted = outputs  # 如果outputs已经是预测结果
+    else:
+        _, predicted = outputs.max(1)  # 如果outputs是模型输出
+    
+    correct = predicted.eq(labels)
+    
+    class_correct = torch.zeros(num_classes)
+    class_total = torch.zeros(num_classes)
+    
+    for i in range(num_classes):
+        mask = (labels == i)
+        if mask.sum() > 0:
+            class_correct[i] = correct[mask].sum()
+        class_total[i] = mask.sum()
+    
+    return class_correct, class_total
+
+def train(model, train_loader, val_loader, args, device, class_weights):
+    # 使用加权交叉熵损失
+    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=0.05)
+    
+    # 使用余弦退火学习率调度器
+    scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(
+        optimizer, T_0=10, T_mult=2, eta_min=args.lr * 0.01
+    )
+    
     best_val_acc = 85
+    best_val_f1 = 0
+    prev_train_loss = None  # 初始化prev_train_loss
 
     # 计算总迭代次数
     total_iterations = len(train_loader) * args.epochs
     print(f"🚀 开始训练，总轮数: {args.epochs}, 每轮迭代数: {len(train_loader)}, 总迭代数: {total_iterations}")
     print(f"📊 学习率: {args.lr}, 批次大小: {args.batch_size}")
+    print(f"⚖️  使用加权损失函数缓解类别不平衡")
     print("=" * 80)
 
     for epoch in range(args.epochs):
@@ -245,6 +319,10 @@ def train(model, train_loader, val_loader, args, device):
             outputs = model(images)
             loss = criterion(outputs, labels)
             loss.backward()
+            
+            # 梯度裁剪防止梯度爆炸
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            
             optimizer.step()
             train_loss += loss.item()
             
@@ -262,18 +340,31 @@ def train(model, train_loader, val_loader, args, device):
         print(f"🔍 Epoch {epoch+1}/{args.epochs} 开始验证...")
         model.eval()
         val_loss, correct, total = 0, 0, 0
+        all_predictions = []
+        all_labels = []
+        
         with torch.no_grad():
-            for images, labels in val_loader:
-                images, labels = images.to(device, dtype=torch.float32), labels.to(device)
+            for images, labels_batch in val_loader:
+                images, labels_batch = images.to(device, dtype=torch.float32), labels_batch.to(device)
                 outputs = model(images)
-                val_loss += criterion(outputs, labels).item()
+                val_loss += criterion(outputs, labels_batch).item()
                 _, predicted = outputs.max(1)
-                total += labels.size(0)
-                correct += predicted.eq(labels).sum().item()
+                total += labels_batch.size(0)
+                correct += predicted.eq(labels_batch).sum().item()
+                
+                all_predictions.extend(predicted.cpu().numpy())
+                all_labels.extend(labels_batch.cpu().numpy())
 
         val_acc = 100. * correct / total
         avg_val_loss = val_loss / len(val_loader)
         elapsed = time.time() - start_time
+        
+        # 计算每个类别的准确率
+        class_correct, class_total = calculate_class_metrics(
+            torch.tensor(all_predictions), 
+            torch.tensor(all_labels), 
+            args.nb_classes
+        )
         
         # 计算总体进度
         overall_progress = (epoch + 1) / args.epochs * 100
@@ -282,14 +373,26 @@ def train(model, train_loader, val_loader, args, device):
         print(f"   🎯 训练损失: {avg_train_loss:.4f} | 验证损失: {avg_val_loss:.4f} | 验证准确率: {val_acc:.2f}%")
         print(f"   ⏱️  耗时: {elapsed:.2f}s | 最佳准确率: {best_val_acc:.2f}%")
         
+        # 显示每个类别的准确率
+        print("   📊 各类别准确率:")
+        for i, class_name in enumerate(class_tabel):
+            if class_total[i] > 0:
+                class_acc = 100. * class_correct[i] / class_total[i]
+                print(f"     {class_name}: {class_acc:.1f}% ({int(class_correct[i])}/{int(class_total[i])})")
+        
         # 损失变化趋势
-        if epoch > 0:
+        if epoch > 0 and prev_train_loss is not None:
             loss_change = avg_train_loss - prev_train_loss
             loss_trend = "↗️" if loss_change > 0 else "↘️" if loss_change < 0 else "➡️"
             print(f"   📊 损失变化: {loss_change:+.4f} {loss_trend}")
         
         prev_train_loss = avg_train_loss
         print("-" * 80)
+
+        # 更新学习率
+        scheduler.step()
+        current_lr = scheduler.get_last_lr()[0]
+        print(f"   📚 当前学习率: {current_lr:.6f}")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -316,9 +419,9 @@ if __name__ == '__main__':
     parser.add_argument('--global_pool', default='token')
     parser.add_argument('--drop_path', type=float, default=0.2)
     parser.add_argument('--val_ratio', type=float, default=0.2)
-    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--lr', type=float, default=0.002)
+    parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--save_path', type=str, required=True)
     args = parser.parse_args()
 
@@ -329,5 +432,5 @@ if __name__ == '__main__':
         args.save_path = convert_path_to_unix_style(args.save_path)
 
     model = load_model_finetuned(args, device)
-    train_loader, val_loader = load_data(args)
-    train(model, train_loader, val_loader, args, device)
+    train_loader, val_loader, class_weights = load_data(args)
+    train(model, train_loader, val_loader, args, device, class_weights)
