@@ -295,7 +295,11 @@ def train(model, train_loader, val_loader, args, device):
             best_val_acc = val_acc
             os.makedirs(args.save_path, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(args.save_path, 'checkpoint-best.pth'))
-            print(f'✅ Saved best model with accuracy: {best_val_acc:.2f}%')
+            print(f"✅ 保存最佳模型，准确率: {best_val_acc:.2f}%")
+            print(f"💾 模型已保存到: {os.path.join(args.save_path, 'checkpoint-best.pth')}")
+    
+    print("🎉 训练完成！")
+    print(f"🏆 最佳验证准确率: {best_val_acc:.2f}%")
 
 def convert_path_to_unix_style(path):
     if os.path.sep == '\\':

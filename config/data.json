@@ -4,47 +4,105 @@
     {
       "code": "N",
       "name": "Normal",
-      "description": "正常眼底"
+      "description": "正常眼底",
+      "counts": {
+        "main": 80,
+        "zeiss": 165,
+        "total": 245
+      }
     },
     {
       "code": "D", 
       "name": "Diabetes",
-      "description": "糖尿病性视网膜病变"
+      "description": "糖尿病性视网膜病变",
+      "counts": {
+        "main": 39168,
+        "zeiss": 146,
+        "total": 39314
+      }
     },
     {
       "code": "D-level",
       "name": "Diabetes level",
-      "description": "糖尿病性视网膜病变(分级)"
+      "description": "糖尿病性视网膜病变(分级)",
+      "counts": {
+        "main": 0,
+        "zeiss": 0,
+        "total": 38788,
+        "subcategories": {
+          "D0": 27615,
+          "D1": 2813,
+          "D2": 6291,
+          "D3": 1066,
+          "D4": 1003
+        }
+      }
     },
     {
       "code": "G",
       "name": "Glaucoma", 
-      "description": "青光眼"
+      "description": "青光眼",
+      "counts": {
+        "main": 430,
+        "zeiss": 0,
+        "total": 430
+      }
     },
     {
       "code": "C",
       "name": "Cataract",
-      "description": "白内障"
+      "description": "白内障",
+      "counts": {
+        "main": 424,
+        "zeiss": 0,
+        "total": 424
+      }
     },
     {
       "code": "A",
       "name": "AMD",
-      "description": "年龄相关性黄斑变性"
+      "description": "年龄相关性黄斑变性",
+      "counts": {
+        "main": 512,
+        "zeiss": 351,
+        "total": 863
+      }
     },
     {
       "code": "CSC",
       "name": "CSC",
-      "description": "中央性浆液性脉络膜视网膜病变"
+      "description": "中央性浆液性脉络膜视网膜病变",
+      "counts": {
+        "main": 192,
+        "zeiss": 43,
+        "total": 235
+      }
     },
     {
       "code": "RP",
       "name": "RP",
-      "description": "视网膜色素变性"
+      "description": "视网膜色素变性",
+      "counts": {
+        "main": 58,
+        "zeiss": 100,
+        "total": 158
+      }
     },
     {
       "code": "RVO",
       "name": "RVO",
-      "description": "视网膜静脉阻塞"
+      "description": "视网膜静脉阻塞",
+      "counts": {
+        "main": 346,
+        "zeiss": 145,
+        "total": 491
+      }
     }
-  ]
+  ],
+  "statistics": {
+    "total_images": 80948,
+    "total_categories": 9,
+    "count_date": "2024",
+    "summary": "包含主类别、蔡司子类别和D-level分级子类别的合并统计，D类别已包含D-level数据"
+  }
 }
