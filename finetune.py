@@ -46,7 +46,7 @@ test_transform = transforms.Compose([
 ])
 
 class_tabel = ('A', 'C', 'CSC', 'D', 'G', 'N', 'RP' , 'RVO')
-class_tabel_with_level = ('A', 'C', 'CSC', 'D0','D1','D2','D3','D4', 'G', 'N', 'RP' , 'BRVO','CRVO')
+class_tabel = ('A', 'C', 'CSC', 'D0','D1','D2','D3','D4', 'G', 'N', 'RP' , 'BRVO','CRVO')
 
 IMG_EXTS = {'.jpg', '.jpeg', '.png', '.tiff', '.TIFF'}
 
@@ -415,7 +415,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', type=str, required=True)
     parser.add_argument('--model', type=str, required=True)
     parser.add_argument('--input_size', default=255, type=int)
-    parser.add_argument('--nb_classes', default=8, type=int)
+    parser.add_argument('--nb_classes', default=13, type=int)
     parser.add_argument('--global_pool', default='token')
     parser.add_argument('--drop_path', type=float, default=0.2)
     parser.add_argument('--val_ratio', type=float, default=0.2)
