@@ -12,7 +12,7 @@
       }
     },
     {
-      "code": "D", 
+      "code": "D(DR)",
       "name": "Diabetes",
       "description": "糖尿病性视网膜病变",
       "counts": {
