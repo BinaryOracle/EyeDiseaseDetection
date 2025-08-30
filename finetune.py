@@ -50,6 +50,24 @@ class_tabel = ('A', 'C', 'CSC', 'D0','D1','D2','D3','D4', 'G', 'N', 'RP' , 'BRVO
 
 IMG_EXTS = {'.jpg', '.jpeg', '.png', '.tiff', '.TIFF'}
 
+# ------------------ Focal Loss ------------------
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=None, gamma=2.0, reduction='mean'):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.reduction = reduction
+
+    def forward(self, inputs, targets):
+        logpt = -nn.functional.cross_entropy(inputs, targets, reduction='none', weight=self.alpha)
+        pt = torch.exp(logpt)
+        loss = -((1 - pt) ** self.gamma) * logpt
+        if self.reduction == 'mean':
+            return loss.mean()
+        elif self.reduction == 'sum':
+            return loss.sum()
+        return loss
+
 # 自定义数据集类
 class FundusDataset(Dataset):
     def __init__(self, img_paths, labels, transform=None):
@@ -286,8 +304,8 @@ def calculate_class_metrics(outputs, labels, num_classes):
     return class_correct, class_total
 
 def train(model, train_loader, val_loader, args, device, class_weights):
-    # 使用加权交叉熵损失
-    criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
+    # 使用 Focal Loss，结合类别权重 alpha 保证大类别不被忽略
+    criterion = FocalLoss(alpha=class_weights.to(device), gamma=1.5)
     optimizer = optim.AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr, weight_decay=0.05)
     
     # 使用余弦退火学习率调度器
