@@ -45,8 +45,9 @@ test_transform = transforms.Compose([
     )
 ])
 
-class_tabel = ('A', 'C', 'CSC', 'D', 'G', 'N', 'RP' , 'RVO')
-class_tabel = ('A', 'C', 'CSC', 'D0','D1','D2','D3','D4', 'G', 'N', 'RP' , 'BRVO','CRVO')
+# class_tabel = ('A', 'C', 'CSC', 'D', 'G', 'N', 'RP' , 'RVO')
+class_label = ('A', 'C', 'CSC', 'D0', 'D1', 'D2', 'D3', 'D4', 'G', 'N', 'RP' , 'BRVO', 'CRVO')
+classify_label = ('normal' , 'disease')
 
 IMG_EXTS = {'.jpg', '.jpeg', '.png', '.tiff', '.TIFF'}
 
@@ -91,7 +92,7 @@ def load_data(args):
 
     root = Path(args.data_path)
 
-    for i, class_name in enumerate(class_tabel):
+    for i, class_name in enumerate(class_label):
         # 递归查找所有目录名为 class_name 的目录
         for class_dir in root.rglob(class_name):
             if class_dir.is_dir():
@@ -100,11 +101,14 @@ def load_data(args):
                     if img_path.suffix.lower() in IMG_EXTS and img_path.is_file():
                         all_img_paths.append(str(img_path))
                         all_labels.append(i)
-
+                        
+    # 添加进度显示
+    print(f"✅ 成功加载 {len(all_img_paths)} 张图片，共 {len(class_label)} 个类别")
+    
     # 分析类别分布
     label_counts = Counter(all_labels)
     print("📊 原始数据类别分布:")
-    for i, class_name in enumerate(class_tabel):
+    for i, class_name in enumerate(class_label):
         print(f"  {class_name}: {label_counts[i]} 张图片")
     
     # 计算类别权重
@@ -319,7 +323,6 @@ def train(model, train_loader, val_loader, args, device, class_weights):
     )
     
     best_val_acc = 85
-    best_val_f1 = 0
     prev_train_loss = None  # 初始化prev_train_loss
 
     # 计算总迭代次数
@@ -398,7 +401,7 @@ def train(model, train_loader, val_loader, args, device, class_weights):
         
         # 显示每个类别的准确率
         print("   📊 各类别准确率:")
-        for i, class_name in enumerate(class_tabel):
+        for i, class_name in enumerate(class_label):
             if class_total[i] > 0:
                 class_acc = 100. * class_correct[i] / class_total[i]
                 print(f"     {class_name}: {class_acc:.1f}% ({int(class_correct[i])}/{int(class_total[i])})")
