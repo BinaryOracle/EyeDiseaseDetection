@@ -1,10 +1,10 @@
 {
   "rabbitmq": {
-    "host": "47.108.62.179",
+    "host": "localhost",
     "port": 5672,
     "username": "guest",
     "password": "guest",
-    "console_url": "http://47.108.62.179:15672/",
+    "console_url": "http://localhost:15672/",
     "queues": {
       "check_queue": {
         "exchange": "check_exchange",
