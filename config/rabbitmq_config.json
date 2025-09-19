@@ -1,0 +1,27 @@
+{
+  "rabbitmq": {
+    "host": "47.108.62.179",
+    "port": 5672,
+    "username": "guest",
+    "password": "guest",
+    "console_url": "http://47.108.62.179:15672/",
+    "queues": {
+      "check_queue": {
+        "exchange": "check_exchange",
+        "routing_key": "check_routing_key"
+      },
+      "report_queue": {
+        "exchange": "report_exchange",
+        "routing_key": "report_routing_key"
+      },
+      "result_check_queue": {
+        "exchange": "result_check_exchange",
+        "routing_key": "result_check_routing_key"
+      },
+      "result_report_queue": {
+        "exchange": "result_report_exchange",
+        "routing_key": "result_report_routing_key"
+      }
+    }
+  }
+}

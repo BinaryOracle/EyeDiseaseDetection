@@ -1,0 +1,97 @@
+/**************************************队列信息：****************************************/
+
+    1、控制台地址：http://xxxx:15672/   账号密码：guest/guest
+    2、api地址端口：xxx:5672
+
+/**************************************报告审核队列：****************************************/
+
+    1、队列名称：check_queue
+    2、交换机名称：check_exchange
+    3、路由键：check_routing_key
+
+    4、传递参数结构：
+        {
+            osAnteriorImg:"/admin/sys-file/aipluseyes/afe15e7d10db40c2abc0803c854c12f3.png", //左眼眼前图像
+            odAnteriorImg:"/admin/sys-file/aipluseyes/afe15e7d10db40c2abc0803c854c12f3.png", //右眼眼前图像
+            osFundusImg:"/admin/sys-file/aipluseyes/afe15e7d10db40c2abc0803c854c12f3.png", //左眼眼底图像
+            odFundusImg:"/admin/sys-file/aipluseyes/afe15e7d10db40c2abc0803c854c12f3.png", //右眼眼底图像
+            id:"1967856474378854401"
+        }
+
+
+/**************************************报告生成队列：****************************************/
+
+    1、队列名称：report_queue
+    2、交换机名称：report_exchange
+    3、路由键：report_routing_key
+
+    4、传递参数结构：
+        {
+            osAnteriorFeatures:"特征1,特征2,特征3", //左眼眼前特征
+            odAnteriorFeatures:"特征1,特征2,特征3", //右眼眼前特征
+            osFundusFeatures:"特征1,特征2,特征3", //左眼眼底特征
+            odFundusFeatures:"特征1,特征2,特征3", //右眼眼底特征
+            osAnteriorDisease:"疾病1,疾病2,疾病3", //左眼眼前疾病
+            odAnteriorDisease:"疾病1,疾病2,疾病3", //右眼眼前疾病
+            osFundusDisease:"疾病1,疾病2,疾病3", //左眼眼底疾病
+            odFundusDisease:"疾病1,疾病2,疾病3", //右眼眼底疾病
+            id:"1967856474378854401"
+        }
+
+/**************************************报告审核结果队列：****************************************/
+
+    1、队列名称：result_check_queue
+    2、交换机名称：result_check_exchange
+    3、路由键：result_check_routing_key
+
+    4、传递参数结构：
+        {
+            osAnteriorResult:{ //左眼眼前结果
+		conjunctivitis: 0,
+		keratitis: 1,
+		cataract: 1,
+		pterygium: 1，
+		exfoliationSyndrome: 1
+            },
+            odAnteriorResult:{ //右眼眼前结果
+		conjunctivitis: 0,
+		keratitis: 1,
+		cataract: 1,
+		pterygium: 1，
+		exfoliationSyndrome: 1
+            },
+            osFundusResult:{ //左眼眼底结果
+                AMD: 0, //0-无 1-有
+                CSC: 1,
+                RP: 0,
+                ON: 1,
+                GLA: 1,
+                DR: 0, // 0-4 五级
+                RVO: 1
+            },
+            odFundusResult:{ //右眼眼底结果
+               AMD: 0, //0-无 1-有
+               CSC: 1,
+               RP: 0,
+               ON: 1,
+               GLA: 1,
+               DR: 0, // 0-4 五级
+               RVO: 1
+            },
+            id:"1967856474378854401"
+        }
+
+/**************************************报告生成结果队列：****************************************/
+
+    1、队列名称：result_report_queue
+    2、交换机名称：result_report_exchange
+    3、路由键：result_report_routing_key
+
+    4、传递参数结构：
+            {
+                anteriorReport:"", //左眼眼前报告描述
+                anteriorInterpret:"", //右眼眼前报告解读
+                fundusReport:"" , //左眼眼底报告描述
+                fundusInterpret:"", //右眼眼底报告解读
+                id:"1967856474378854401"
+            }
