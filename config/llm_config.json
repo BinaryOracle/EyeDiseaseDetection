@@ -1,6 +1,6 @@
 {
   "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-  "api_key": "sk-3927c09be3fb4c26ad246798cd741d12",
+  "api_key": "",
   "model": "qwen-plus",
   "temperature": 0.7,
   "max_tokens": 2000,
